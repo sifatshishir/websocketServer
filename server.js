@@ -9,8 +9,16 @@ const wss = new WebSocket.Server({ server });
 wss.on('connection', (ws) => {
     console.log('A new client connected');
     ws.on('message', (message) => {
-        console.log(`Received message: ${message}`);
-        ws.send(`You said: ${message}`);
+        const messageString = Buffer.isBuffer(message) ? message.toString() : message;
+
+        console.log('Received message:', messageString);
+
+        // Broadcast message to all clients as a string
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(messageString);
+            }
+        });
     });
 
     ws.on('close', () => {
